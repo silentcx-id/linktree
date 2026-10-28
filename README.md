@@ -3,12 +3,12 @@
 Halaman tautan untuk bio Instagram SilentCX, dibuat dengan Google Apps Script. Data disimpan di satu Google Sheet, dan semua pengelolaannya lewat panel admin yang dikunci PIN 4 digit.
 
 - **Link untuk bio Instagram:** https://silentcx-id.github.io/linktree/
-- **Panel admin:** https://silentcx-id.github.io/linktree/?admin (langsung diteruskan ke halaman Google)
+- **Panel admin:** https://silentcx-id.github.io/linktree/admin (atau `?admin`), langsung diteruskan ke halaman Google
 - **Web app Google (asli):** https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec
 
 Link github.io hanyalah bingkai (`docs/index.html`) yang menampilkan web app Google di dalamnya. Gunanya supaya alamatnya pendek, dan pratinjau link di WhatsApp atau DM memakai judul dan logo SilentCX. Semua isi, panel, dan statistik tetap berjalan di Google.
 
-Saat kode diperbarui, deploy sebagai versi baru dari deployment yang sama supaya link web app tidak berubah (lihat "Kalau kode diperbarui"). Kalau link web app terpaksa berubah, ganti `APP_URL` di `docs/index.html`.
+Saat kode diperbarui, deploy sebagai versi baru dari deployment yang sama supaya link web app tidak berubah (lihat "Kalau kode diperbarui"). Kalau link web app terpaksa berubah, ganti alamatnya di `docs/index.html` dan `docs/admin/index.html`.
 
 ## Fitur
 

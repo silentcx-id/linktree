@@ -155,7 +155,8 @@ async function open(path, viewport, { gasBridge = false } = {}) {
   await ctx.route("https://silentcx-id.github.io/linktree/**", (route) => {
     const u = new URL(route.request().url());
     if (u.pathname.startsWith("/linktree/assets/")) return route.fulfill({ path: fileURLToPath(new URL(`../docs${u.pathname.slice(9)}`, import.meta.url)) });
-    const page = readFileSync(new URL("../docs/index.html", import.meta.url), "utf8").replace(/https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec/g, env.URL_EXEC);
+    const doc = /^\/linktree\/admin\/?$/.test(u.pathname) ? "../docs/admin/index.html" : "../docs/index.html";
+    const page = readFileSync(new URL(doc, import.meta.url), "utf8").replace(/https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec/g, env.URL_EXEC);
     route.fulfill({ contentType: "text/html", body: page });
   });
   await ctx.route(/wa\.me|silentcx\.id|instagram\.com/, (route) => route.fulfill({ contentType: "text/html", body: "<p>tujuan</p>" }));
@@ -222,6 +223,10 @@ try {
     check("github.io: tanpa error JavaScript", errors.length === 0, errors.join(" | "));
     await page.goto("https://silentcx-id.github.io/linktree/?admin", { waitUntil: "networkidle" });
     check("github.io: ?admin langsung ke panel Google (tidak dibingkai)", page.url().startsWith(env.URL_EXEC) && page.url().endsWith("?admin"));
+    for (const path of ["admin", "admin/"]) {
+      await page.goto(`https://silentcx-id.github.io/linktree/${path}`, { waitUntil: "networkidle" });
+      check(`github.io: /linktree/${path} membuka layar PIN`, page.url() === `${env.URL_EXEC}?admin` && (await page.locator("#pad").isVisible()));
+    }
     check("panel admin menolak dibingkai, halaman publik boleh", gas.doGet({ parameter: { admin: "" } }).frame !== "ALLOWALL" && gas.doGet({ parameter: {} }).frame === "ALLOWALL");
     await ctx.close();
   }
