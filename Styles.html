@@ -1,0 +1,59 @@
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Familjen+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #06080c;
+    --panel: #0e1117;
+    --raise: #161a22;
+    --line: #242a35;
+    --ink: #f3f1ec;
+    --muted: #9aa0ab;
+    --accent: #e5a93c;
+    --accent-ink: #06080c;
+    --mark: #f0bd5e;
+    --bad: #f06a5f;
+    --good: #4cc38a;
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+    --body: "Familjen Grotesk", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Halaman publik ---------- */
+  .lt { position: relative; max-width: 520px; margin: 0 auto; padding: 48px 16px 32px; display: grid; gap: 22px; }
+  .lt::before { content: ""; position: absolute; inset: 0 0 auto; height: 260px; background: radial-gradient(60% 100% at 50% 0%, rgba(229, 169, 60, 0.16), transparent 70%); pointer-events: none; }
+  .lt > * { position: relative; }
+  .lt-lang { position: absolute; top: 14px; right: 16px; display: flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel); }
+  .lt-lang button { border: 0; background: none; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+  .lt-lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .lt-head { display: grid; justify-items: center; text-align: center; gap: 10px; }
+  .lt-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); background: var(--raise); }
+  .lt-name { margin: 4px 0 0; font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: -0.01em; }
+  .lt-bio { margin: 0; color: var(--muted); max-width: 40ch; white-space: pre-line; }
+  .lt-news { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(229, 169, 60, 0.45); background: rgba(229, 169, 60, 0.1); color: var(--ink); text-decoration: none; font-size: 15px; }
+  .lt-news svg.i { color: var(--mark); }
+  .lt-links { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .lt-link { display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); text-decoration: none; transition: border-color 0.15s, transform 0.15s; }
+  .lt-link:hover { border-color: var(--accent); }
+  .lt-link:active { transform: scale(0.99); }
+  .lt-link .lt-ic { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: var(--raise); color: var(--mark); flex: none; }
+  .lt-link .lt-tx { display: grid; flex: 1; min-width: 0; }
+  .lt-link strong { font-weight: 600; font-size: 16px; }
+  .lt-link small { color: var(--muted); font-size: 13px; }
+  .lt-link .lt-go { color: var(--muted); }
+  .lt-link.hl { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .lt-link.hl .lt-ic { background: rgba(6, 8, 12, 0.14); color: var(--accent-ink); }
+  .lt-link.hl small, .lt-link.hl .lt-go { color: rgba(6, 8, 12, 0.72); }
+  .lt-link.hl:hover { border-color: var(--mark); background: var(--mark); }
+  .lt-social { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .lt-social a { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); color: var(--ink); background: var(--panel); }
+  .lt-social a:hover { border-color: var(--accent); color: var(--mark); }
+  .lt-foot { text-align: center; color: var(--muted); font-size: 12px; }
+  .lt-empty { text-align: center; color: var(--muted); padding: 24px; border: 1px dashed var(--line); border-radius: 16px; }
+</style>

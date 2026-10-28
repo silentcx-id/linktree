@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <?!= include('Styles'); ?>
+    <style>
+      body { min-height: 100vh; }
+      .hidden { display: none !important; }
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--raise); font-weight: 600; cursor: pointer; text-decoration: none; }
+      .btn:hover { border-color: var(--muted); }
+      .btn:disabled { opacity: 0.5; cursor: default; }
+      .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+      .btn-primary:hover { background: var(--mark); border-color: var(--mark); }
+      .btn-sm { min-height: 34px; padding: 0 10px; font-size: 14px; border-radius: 10px; }
+      .btn-icon { width: 34px; min-height: 34px; padding: 0; border-radius: 10px; }
+      .btn-danger { color: var(--bad); }
+      .muted { color: var(--muted); }
+      .err { color: var(--bad); }
+
+      /* PIN */
+      .pin { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+      .pin-box { width: 100%; max-width: 320px; display: grid; justify-items: center; gap: 18px; text-align: center; }
+      .pin-box img { width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--accent); }
+      .pin-box h1 { margin: 0; font-family: var(--display); font-size: 22px; }
+      .pin-dots { display: flex; gap: 14px; }
+      .pin-dots span { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--muted); }
+      .pin-dots span.on { background: var(--accent); border-color: var(--accent); }
+      .pin-dots.shake { animation: shake 0.35s; }
+      @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+      .pad { display: grid; grid-template-columns: repeat(3, 76px); gap: 12px; }
+      .pad button { height: 64px; border-radius: 18px; border: 1px solid var(--line); background: var(--panel); font-size: 24px; font-weight: 600; cursor: pointer; }
+      .pad button:active { background: var(--raise); }
+      .pad button:disabled { opacity: 0.4; }
+      .pin-msg { min-height: 44px; font-size: 14px; }
+
+      /* Panel */
+      .top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(6, 8, 12, 0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+      .top img { width: 32px; height: 32px; border-radius: 50%; }
+      .top b { font-family: var(--display); font-size: 17px; flex: 1; }
+      .tabs { display: flex; gap: 4px; padding: 10px 16px 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
+      .tabs button { border: 0; background: none; padding: 10px 12px; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 600; cursor: pointer; white-space: nowrap; }
+      .tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--accent); }
+      .wrap { max-width: 1120px; margin: 0 auto; padding: 20px 16px 120px; display: grid; gap: 24px; }
+      .wrap.with-preview { grid-template-columns: minmax(0, 1fr); }
+      @media (min-width: 960px) { .wrap.with-preview { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; } }
+      .stack { display: grid; gap: 16px; min-width: 0; }
+      .card { border: 1px solid var(--line); background: var(--panel); border-radius: 16px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+      .card h2 { margin: 0; font-size: 17px; }
+      .card h2 + p { margin: -8px 0 0; font-size: 14px; }
+      .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .grid2 { display: grid; gap: 12px; }
+      @media (min-width: 560px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+      .field { display: grid; gap: 6px; min-width: 0; }
+      .field > span { font-size: 13px; font-weight: 600; color: var(--muted); }
+      .field input, .field textarea, .field select { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+      .field textarea { min-height: 80px; resize: vertical; }
+      .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); outline: none; }
+      .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; user-select: none; }
+      .switch input { appearance: none; width: 40px; height: 24px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; margin: 0; transition: background 0.15s; }
+      .switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); transition: transform 0.15s; }
+      .switch input:checked { background: var(--accent); }
+      .switch input:checked::after { transform: translateX(16px); background: var(--accent-ink); }
+      .chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+      .chip.gold { border-color: var(--accent); color: var(--mark); }
+      .chip.warn { border-color: rgba(240, 106, 95, 0.5); color: var(--bad); }
+
+      .item { border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+      .item.off { opacity: 0.6; }
+      .item-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; flex-wrap: wrap; }
+      .item-head .lt-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--raise); color: var(--mark); flex: none; }
+      .item-title { flex: 1; min-width: 140px; display: grid; }
+      .item-title b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .item-title small { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .item-body { border-top: 1px solid var(--line); padding: 14px 12px; display: grid; gap: 12px; }
+      .icons { display: flex; flex-wrap: wrap; gap: 6px; }
+      .icons button { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+      .icons button[aria-pressed="true"] { border-color: var(--accent); color: var(--mark); background: rgba(229, 169, 60, 0.12); }
+
+      .avatar-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+      .avatar-row img { width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+
+      .preview { position: sticky; top: 70px; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; background: var(--bg); }
+      .preview-label { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); background: var(--panel); }
+      .preview .lt { padding-top: 44px; max-height: 72vh; overflow: auto; }
+      .preview-toggle { display: none; }
+      @media (max-width: 959px) {
+        .preview { display: none; position: fixed; inset: 56px 8px 84px; z-index: 8; top: 56px; }
+        .preview.open { display: block; }
+        .preview .lt { max-height: calc(100vh - 190px); }
+        .preview-toggle { display: inline-flex; }
+      }
+
+      .savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--panel); border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+      .savebar span { flex: 1; min-width: 160px; font-size: 14px; }
+      .fab { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 9; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); }
+
+      .toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); z-index: 20; padding: 10px 16px; border-radius: 12px; background: var(--ink); color: var(--bg); font-weight: 600; font-size: 14px; max-width: calc(100% - 32px); }
+      .toast.bad { background: var(--bad); color: #fff; }
+
+      /* Statistik */
+      .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 12px; padding: 3px; background: var(--panel); }
+      .seg button { border: 0; background: none; padding: 6px 12px; border-radius: 9px; font-weight: 600; font-size: 14px; color: var(--muted); cursor: pointer; }
+      .seg button[aria-pressed="true"] { background: var(--raise); color: var(--ink); }
+      .kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+      .kpi { border: 1px solid var(--line); background: var(--panel); border-radius: 16px; padding: 14px 16px; display: grid; gap: 2px; }
+      .kpi span { font-size: 13px; color: var(--muted); }
+      .kpi b { font-family: var(--display); font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); }
+      .legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+      .chart { position: relative; }
+      .chart svg { display: block; width: 100%; height: 220px; }
+      .chart .tip { position: absolute; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--raise); border: 1px solid var(--line); font-size: 13px; white-space: nowrap; transform: translate(-50%, -100%); }
+      .rank { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+      .rank li { display: grid; gap: 4px; }
+      .rank .row { justify-content: space-between; flex-wrap: nowrap; font-size: 14px; }
+      .rank .row span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .bar { height: 8px; border-radius: 4px; background: var(--raise); overflow: hidden; }
+      .bar i { display: block; height: 100%; border-radius: 4px; background: #c0841f; }
+      table.log { width: 100%; border-collapse: collapse; font-size: 14px; }
+      table.log td { padding: 8px 0; border-bottom: 1px solid var(--line); }
+      table.log td:last-child { text-align: right; color: var(--muted); }
+      .pinform { display: grid; gap: 12px; max-width: 360px; }
+    </style>
+  </head>
+  <body>
+    <!-- Layar PIN -->
+    <section class="pin" id="pin">
+      <div class="pin-box">
+        <img id="pin-logo" alt="" />
+        <h1>Admin Linktree</h1>
+        <p class="muted" style="margin:-10px 0 0">Masukkan PIN 4 digit</p>
+        <div class="pin-dots" id="dots" aria-live="polite"><span></span><span></span><span></span><span></span></div>
+        <div class="pad" id="pad">
+          <button type="button">1</button><button type="button">2</button><button type="button">3</button>
+          <button type="button">4</button><button type="button">5</button><button type="button">6</button>
+          <button type="button">7</button><button type="button">8</button><button type="button">9</button>
+          <span></span><button type="button">0</button><button type="button" data-back aria-label="Hapus">⌫</button>
+        </div>
+        <p class="pin-msg" id="pin-msg" role="alert"></p>
+      </div>
+    </section>
+
+    <!-- Panel -->
+    <section id="panel" class="hidden">
+      <div class="top">
+        <img id="top-logo" alt="" />
+        <b>Linktree</b>
+        <a class="btn btn-sm" id="open-public" target="_blank" rel="noopener">Lihat halaman</a>
+        <button class="btn btn-sm" type="button" id="logout">Keluar</button>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="look" aria-selected="true">Tampilan</button>
+        <button role="tab" data-tab="links" aria-selected="false">Tautan</button>
+        <button role="tab" data-tab="stats" aria-selected="false">Statistik</button>
+        <button role="tab" data-tab="settings" aria-selected="false">Pengaturan</button>
+      </nav>
+      <div class="wrap" id="wrap">
+        <div class="stack" id="view"></div>
+        <aside class="preview" id="preview">
+          <div class="preview-label"><span>Pratinjau (belum disimpan)</span><button class="btn btn-sm preview-toggle" type="button" data-close-preview>Tutup</button></div>
+          <main class="lt" id="preview-root"></main>
+        </aside>
+      </div>
+      <div class="savebar hidden" id="savebar">
+        <span>Ada perubahan yang belum disimpan.</span>
+        <button class="btn preview-toggle" type="button" data-open-preview>Pratinjau</button>
+        <button class="btn" type="button" id="discard">Batalkan</button>
+        <button class="btn btn-primary" type="button" id="save">Simpan</button>
+      </div>
+    </section>
+
+    <button class="btn fab preview-toggle hidden" type="button" id="fab" data-open-preview>Pratinjau</button>
+    <div class="toast hidden" id="toast" role="status"></div>
+
+    <?!= include('Shared'); ?>
+    <script>
+      var BOOT = <?!= boot ?>;
+      var $ = function (id) { return document.getElementById(id); };
+      var state = { token: '', saved: null, cfg: null, tab: 'look', open: {}, statsDays: 30, stats: null, previewLang: 'id', busy: false };
+      var MAX_LINKS = 30, MAX_SOCIAL = 8;
+
+      $('pin-logo').src = BOOT.logo;
+      $('top-logo').src = BOOT.logo;
+
+      // ---------- Server ----------
+      function call(name) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        return new Promise(function (resolve, reject) {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(function (err) {
+              var msg = (err && err.message) || String(err);
+              if (msg.indexOf('SESI_HABIS') >= 0) {
+                signOut('Sesi berakhir. Masukkan PIN lagi.');
+                reject(new Error('SESI_HABIS'));
+              } else reject(new Error(msg.replace(/^Error:\s*/, '')));
+            })[name].apply(null, args);
+        });
+      }
+
+      function toast(msg, bad) {
+        var t = $('toast');
+        t.textContent = msg;
+        t.className = 'toast' + (bad ? ' bad' : '');
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(function () { t.className = 'toast hidden'; }, 3500);
+      }
+
+      // ---------- PIN ----------
+      var pin = '';
+      var lockTimer = null;
+
+      function drawDots() {
+        Array.prototype.forEach.call($('dots').children, function (d, i) { d.className = i < pin.length ? 'on' : ''; });
+      }
+
+      function setPadEnabled(on) {
+        Array.prototype.forEach.call($('pad').querySelectorAll('button'), function (b) { b.disabled = !on; });
+      }
+
+      function pressKey(k) {
+        if (state.busy || $('pin').classList.contains('hidden')) return;
+        if (k === 'back') pin = pin.slice(0, -1);
+        else if (pin.length < 4) pin += k;
+        drawDots();
+        if (pin.length === 4) submitPin();
+      }
+
+      function showLock(until, msg) {
+        clearInterval(lockTimer);
+        setPadEnabled(false);
+        if (until === 'permanent') { $('pin-msg').textContent = msg; return; }
+        var tick = function () {
+          var left = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+          if (!left) { clearInterval(lockTimer); setPadEnabled(true); $('pin-msg').textContent = ''; return; }
+          var m = Math.floor(left / 60), s = left % 60;
+          $('pin-msg').textContent = msg + ' Coba lagi dalam ' + (m ? m + ' menit ' : '') + s + ' detik.';
+        };
+        tick();
+        lockTimer = setInterval(tick, 1000);
+      }
+
+      function submitPin() {
+        state.busy = true;
+        setPadEnabled(false);
+        $('pin-msg').textContent = 'Memeriksa…';
+        call('adminLogin', pin)
+          .then(function (res) {
+            state.busy = false;
+            pin = '';
+            drawDots();
+            if (res.ok) {
+              try { localStorage.setItem('lt-admin', JSON.stringify({ token: res.token, exp: res.exp })); } catch (e) {}
+              state.token = res.token;
+              $('pin-msg').textContent = '';
+              setPadEnabled(true);
+              loadPanel();
+              return;
+            }
+            $('dots').classList.remove('shake');
+            void $('dots').offsetWidth;
+            $('dots').classList.add('shake');
+            if (res.locked) showLock(res.locked, res.error);
+            else { setPadEnabled(true); $('pin-msg').textContent = res.error; }
+          })
+          .catch(function (err) {
+            state.busy = false;
+            pin = '';
+            drawDots();
+            setPadEnabled(true);
+            $('pin-msg').textContent = 'Gagal terhubung: ' + err.message;
+          });
+      }
+
+      $('pad').addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (b) pressKey(b.hasAttribute('data-back') ? 'back' : b.textContent);
+      });
+      document.addEventListener('keydown', function (e) {
+        if ($('pin').classList.contains('hidden')) return;
+        if (/^\d$/.test(e.key)) pressKey(e.key);
+        else if (e.key === 'Backspace') pressKey('back');
+      });
+
+      function signOut(msg) {
+        try { localStorage.removeItem('lt-admin'); } catch (e) {}
+        state.token = '';
+        state.saved = state.cfg = state.stats = null;
+        $('panel').classList.add('hidden');
+        $('fab').classList.add('hidden');
+        $('savebar').classList.add('hidden');
+        $('pin').classList.remove('hidden');
+        $('pin-msg').textContent = msg || '';
+      }
+
+      $('logout').addEventListener('click', function () {
+        if (isDirty() && !confirm('Perubahan yang belum disimpan akan hilang. Keluar?')) return;
+        var token = state.token;
+        signOut('Anda sudah keluar.');
+        call('adminLogout', token).catch(function () {});
+      });
+
+      // ---------- Panel ----------
+      function clone(v) { return JSON.parse(JSON.stringify(v)); }
+      function isDirty() { return state.cfg && JSON.stringify(state.cfg) !== JSON.stringify(state.saved); }
+
+      function loadPanel() {
+        $('pin').classList.add('hidden');
+        $('panel').classList.remove('hidden');
+        $('view').innerHTML = '<p class="muted">Memuat…</p>';
+        call('adminLoad', state.token).then(function (res) {
+          state.saved = res.config;
+          state.cfg = clone(res.config);
+          $('open-public').href = res.url || BOOT.url;
+          render();
+        }).catch(function (err) { if (err.message !== 'SESI_HABIS') $('view').innerHTML = '<p class="err">' + esc(err.message) + '</p>'; });
+      }
+
+      function setTab(tab) {
+        state.tab = tab;
+        Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'), function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === tab)); });
+        render();
+        if (tab === 'stats' && !state.stats) loadStats();
+      }
+      document.querySelector('.tabs').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-tab]');
+        if (b) setTab(b.getAttribute('data-tab'));
+      });
+
+      function today() {
+        var d = new Date(Date.now() + 7 * 3600000);
+        return d.toISOString().slice(0, 10);
+      }
+
+      function scheduleState(l) {
+        var t = today();
+        if (l.end && l.end < t) return 'ended';
+        if (l.start && l.start > t) return 'waiting';
+        return 'live';
+      }
+
+      // Pratinjau memakai aturan yang sama dengan halaman publik.
+      function previewConfig() {
+        var c = state.cfg;
+        var a = c.announcement;
+        return {
+          profile: c.profile,
+          announcement: a.on && a.text.id && (!a.until || today() <= a.until) ? a : null,
+          links: c.links.filter(function (l) { return l.on && scheduleState(l) === 'live'; }),
+          social: c.social,
+        };
+      }
+
+      function renderPreview() {
+        var show = state.tab === 'look' || state.tab === 'links';
+        $('wrap').classList.toggle('with-preview', show);
+        $('preview').classList.toggle('hidden', !show);
+        if (show) renderLinktree($('preview-root'), previewConfig(), state.previewLang, { logo: BOOT.logo });
+      }
+      $('preview').addEventListener('click', function (e) {
+        var lb = e.target.closest('[data-lang]');
+        if (lb) { state.previewLang = lb.getAttribute('data-lang'); renderPreview(); return; }
+        if (e.target.closest('[data-close-preview]')) { $('preview').classList.remove('open'); return; }
+        if (e.target.closest('a')) e.preventDefault();
+      });
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('[data-open-preview]')) $('preview').classList.add('open');
+      });
+
+      function updateSavebar() {
+        var dirty = isDirty();
+        // Bilah simpan hanya muncul kalau ada perubahan; selain itu cukup tombol Pratinjau mengambang (HP).
+        $('savebar').classList.toggle('hidden', !dirty);
+        $('fab').classList.toggle('hidden', dirty || $('panel').classList.contains('hidden') || !(state.tab === 'look' || state.tab === 'links'));
+        $('save').disabled = !dirty;
+        $('discard').disabled = !dirty;
+      }
+
+      function render() {
+        if (!state.cfg) return;
+        var v = $('view');
+        if (state.tab === 'look') v.innerHTML = viewLook();
+        else if (state.tab === 'links') v.innerHTML = viewLinks();
+        else if (state.tab === 'stats') v.innerHTML = viewStats();
+        else v.innerHTML = viewSettings();
+        if (state.tab === 'stats') drawChart();
+        if (state.tab === 'settings') loadLogins();
+        renderPreview();
+        updateSavebar();
+      }
+
+      // Perubahan kecil (mengetik) tidak menggambar ulang form supaya kursor tidak lompat.
+      function changed(redraw) {
+        if (redraw) render();
+        else { renderPreview(); updateSavebar(); }
+      }
+
+      function field(label, path, value, opts) {
+        opts = opts || {};
+        var attrs = ' data-path="' + path + '"' + (opts.max ? ' maxlength="' + opts.max + '"' : '') + (opts.placeholder ? ' placeholder="' + esc(opts.placeholder) + '"' : '');
+        var input = opts.area
+          ? '<textarea' + attrs + '>' + esc(value) + '</textarea>'
+          : '<input type="' + (opts.type || 'text') + '"' + attrs + ' value="' + esc(value) + '"' + (opts.mode ? ' inputmode="' + opts.mode + '"' : '') + ' />';
+        return '<label class="field"><span>' + label + '</span>' + input + (opts.hint ? '<small class="muted">' + opts.hint + '</small>' : '') + '</label>';
+      }
+
+      function toggle(label, path, on) {
+        return '<label class="switch"><input type="checkbox" data-path="' + path + '"' + (on ? ' checked' : '') + ' />' + label + '</label>';
+      }
+
+      // ---------- Tampilan ----------
+      function viewLook() {
+        var c = state.cfg, p = c.profile, a = c.announcement;
+        var social = c.social.map(function (s, i) {
+          var opts = Object.keys(SOCIAL_LABELS).map(function (k) { return '<option value="' + k + '"' + (k === s.type ? ' selected' : '') + '>' + SOCIAL_LABELS[k] + '</option>'; }).join('');
+          return '<div class="item"><div class="item-head"><span class="lt-ic">' + icon(s.type) + '</span>' +
+            '<label class="field" style="width:150px"><span class="hidden">Jenis</span><select data-path="social.' + i + '.type" aria-label="Jenis">' + opts + '</select></label>' +
+            '<label class="field" style="flex:1;min-width:180px"><span class="hidden">Alamat</span><input data-path="social.' + i + '.url" value="' + esc(s.url) + '" placeholder="https://" aria-label="Alamat" /></label>' +
+            '<button class="btn btn-icon" type="button" data-act="social-up" data-i="' + i + '" aria-label="Naikkan"' + (i ? '' : ' disabled') + '>↑</button>' +
+            '<button class="btn btn-icon btn-danger" type="button" data-act="social-del" data-i="' + i + '" aria-label="Hapus">✕</button></div></div>';
+        }).join('');
+        return '' +
+          '<div class="card"><h2>Profil</h2>' +
+          '<div class="avatar-row"><img src="' + esc(p.avatar || BOOT.logo) + '" alt="" />' +
+          '<div class="row"><label class="btn btn-sm">Ganti foto<input type="file" accept="image/*" id="avatar-file" class="hidden" /></label>' +
+          (p.avatar ? '<button class="btn btn-sm" type="button" data-act="avatar-reset">Pakai logo SilentCX</button>' : '') + '</div></div>' +
+          field('Nama', 'profile.name', p.name, { max: 60 }) +
+          '<div class="grid2">' + field('Bio (Indonesia)', 'profile.bio.id', p.bio.id, { area: true, max: 300 }) + field('Bio (English)', 'profile.bio.en', p.bio.en, { area: true, max: 300, hint: 'Kosongkan untuk memakai versi Indonesia.' }) + '</div></div>' +
+          '<div class="card"><div class="row" style="justify-content:space-between"><h2>Pengumuman</h2>' + toggle('Tampilkan', 'announcement.on', a.on) + '</div>' +
+          '<p class="muted">Banner di atas tautan, misalnya promo. Hilang sendiri setelah tanggal berakhir.</p>' +
+          '<div class="grid2">' + field('Teks (Indonesia)', 'announcement.text.id', a.text.id, { max: 160 }) + field('Teks (English)', 'announcement.text.en', a.text.en, { max: 160 }) + '</div>' +
+          '<div class="grid2">' + field('Tautan (opsional)', 'announcement.url', a.url, { placeholder: 'https://' }) + field('Tampil sampai (opsional)', 'announcement.until', a.until, { type: 'date' }) + '</div></div>' +
+          '<div class="card"><h2>Media sosial</h2><p class="muted">Ikon bulat di bawah tautan.</p>' + (social || '<p class="muted">Belum ada.</p>') +
+          '<div><button class="btn btn-sm" type="button" data-act="social-add"' + (c.social.length >= MAX_SOCIAL ? ' disabled' : '') + '>+ Tambah media sosial</button></div></div>';
+      }
+
+      // ---------- Tautan ----------
+      function viewLinks() {
+        var links = state.cfg.links;
+        var list = links.map(function (l, i) {
+          var st = scheduleState(l);
+          var badges = (l.highlight ? '<span class="chip gold">Disorot</span>' : '') +
+            (st === 'waiting' ? '<span class="chip">Mulai ' + esc(l.start) + '</span>' : '') +
+            (st === 'ended' ? '<span class="chip warn">Berakhir</span>' : '') +
+            (st === 'live' && l.end ? '<span class="chip">Sampai ' + esc(l.end) + '</span>' : '');
+          var open = state.open[l.id];
+          var icons = Object.keys(ICON_LABELS).map(function (k) {
+            return '<button type="button" data-act="icon" data-i="' + i + '" data-icon="' + k + '" aria-pressed="' + (l.icon === k) + '" title="' + ICON_LABELS[k] + '" aria-label="' + ICON_LABELS[k] + '">' + icon(k) + '</button>';
+          }).join('');
+          return '<div class="item' + (l.on ? '' : ' off') + '">' +
+            '<div class="item-head"><span class="lt-ic">' + icon(l.icon) + '</span>' +
+            '<span class="item-title"><b>' + esc(l.title.id || '(tanpa judul)') + '</b><small>' + esc(l.url) + '</small></span>' + badges +
+            '<span class="row" style="gap:6px">' + toggle('Aktif', 'links.' + i + '.on', l.on) +
+            '<button class="btn btn-icon" type="button" data-act="up" data-i="' + i + '" aria-label="Naikkan"' + (i ? '' : ' disabled') + '>↑</button>' +
+            '<button class="btn btn-icon" type="button" data-act="down" data-i="' + i + '" aria-label="Turunkan"' + (i < links.length - 1 ? '' : ' disabled') + '>↓</button>' +
+            '<button class="btn btn-sm" type="button" data-act="edit" data-id="' + l.id + '" aria-expanded="' + Boolean(open) + '">' + (open ? 'Tutup' : 'Ubah') + '</button></span></div>' +
+            (open ? '<div class="item-body">' +
+              '<div class="grid2">' + field('Judul (Indonesia)', 'links.' + i + '.title.id', l.title.id, { max: 80 }) + field('Judul (English)', 'links.' + i + '.title.en', l.title.en, { max: 80 }) + '</div>' +
+              '<div class="grid2">' + field('Keterangan kecil (Indonesia)', 'links.' + i + '.desc.id', l.desc.id, { max: 120 }) + field('Keterangan kecil (English)', 'links.' + i + '.desc.en', l.desc.en, { max: 120 }) + '</div>' +
+              field('Alamat tujuan', 'links.' + i + '.url', l.url, { placeholder: 'https://', hint: 'Pakai https://, mailto:email@domain, atau tel:+62…. WhatsApp: https://wa.me/62812…' }) +
+              '<div class="field"><span>Ikon</span><div class="icons">' + icons + '</div></div>' +
+              '<div class="grid2">' + field('Tampil mulai (opsional)', 'links.' + i + '.start', l.start, { type: 'date' }) + field('Tampil sampai (opsional)', 'links.' + i + '.end', l.end, { type: 'date' }) + '</div>' +
+              '<div class="row" style="justify-content:space-between">' + toggle('Sorot dengan warna emas', 'links.' + i + '.highlight', l.highlight) +
+              '<button class="btn btn-sm btn-danger" type="button" data-act="del" data-i="' + i + '">Hapus tautan</button></div></div>' : '') +
+            '</div>';
+        }).join('');
+        return '<div class="card"><div class="row" style="justify-content:space-between"><h2>Tautan (' + links.length + ')</h2>' +
+          '<button class="btn btn-sm btn-primary" type="button" data-act="add"' + (links.length >= MAX_LINKS ? ' disabled' : '') + '>+ Tambah tautan</button></div>' +
+          '<p class="muted">Urutan di sini sama dengan urutan di halaman. Tautan nonaktif disimpan tapi tidak ditampilkan.</p>' +
+          (list || '<p class="muted">Belum ada tautan.</p>') + '</div>';
+      }
+
+      // ---------- Statistik ----------
+      var VIEW_COLOR = '#5a93e0', CLICK_COLOR = '#c0841f';
+
+      function loadStats() {
+        state.stats = 'loading';
+        render();
+        call('adminStats', state.token, state.statsDays).then(function (s) { state.stats = s; render(); })
+          .catch(function (err) { state.stats = { error: err.message }; render(); });
+      }
+
+      function fmt(n) { return Number(n || 0).toLocaleString('id-ID'); }
+      function pct(a, b) { return b ? (Math.round((a / b) * 1000) / 10).toLocaleString('id-ID') + '%' : '–'; }
+
+      function viewStats() {
+        var seg = '<div class="seg" role="group" aria-label="Periode">' + [[7, '7 hari'], [30, '30 hari'], [90, '90 hari'], [0, 'Semua']].map(function (o) {
+          return '<button type="button" data-act="days" data-days="' + o[0] + '" aria-pressed="' + (state.statsDays === o[0]) + '">' + o[1] + '</button>';
+        }).join('') + '</div>';
+        var head = '<div class="row" style="justify-content:space-between">' + seg + '<button class="btn btn-sm" type="button" data-act="csv"' + (state.stats && state.stats.series ? '' : ' disabled') + '>Unduh CSV</button></div>';
+        var s = state.stats;
+        if (!s || s === 'loading') return head + '<p class="muted">Memuat statistik…</p>';
+        if (s.error) return head + '<p class="err">' + esc(s.error) + '</p>';
+        var notice = s.tracking ? '' : '<p class="chip warn" style="padding:8px 12px;border-radius:12px">Pencatatan statistik sedang dimatikan di Pengaturan. Data baru tidak tercatat.</p>';
+        var max = s.links.reduce(function (m, l) { return Math.max(m, l.clicks); }, 0);
+        var rank = s.links.length ? '<ul class="rank">' + s.links.map(function (l) {
+          return '<li><div class="row"><span>' + esc(l.title) + (l.removed ? ' <span class="chip">dihapus</span>' : '') + '</span><span>' + fmt(l.clicks) + ' klik · ' + pct(l.clicks, s.totals.views) + '</span></div>' +
+            '<div class="bar"><i style="width:' + (max ? (l.clicks / max) * 100 : 0) + '%"></i></div></li>';
+        }).join('') + '</ul>' : '<p class="muted">Belum ada klik di periode ini.</p>';
+        var dv = s.device.m + s.device.d, lg = s.lang.id + s.lang.en;
+        return head + notice +
+          '<div class="kpis"><div class="kpi"><span>Kunjungan</span><b>' + fmt(s.totals.views) + '</b></div>' +
+          '<div class="kpi"><span>Klik tautan</span><b>' + fmt(s.totals.clicks) + '</b></div>' +
+          '<div class="kpi"><span>Rasio klik</span><b>' + pct(s.totals.clicks, s.totals.views) + '</b></div></div>' +
+          '<div class="card"><div class="row" style="justify-content:space-between"><h2>Kunjungan dan klik per hari</h2>' +
+          '<div class="legend"><span><i style="background:' + VIEW_COLOR + '"></i>Kunjungan</span><span><i style="background:' + CLICK_COLOR + '"></i>Klik</span></div></div>' +
+          '<div class="chart" id="chart"></div></div>' +
+          '<div class="card"><h2>Tautan paling banyak diklik</h2><p class="muted">Persentase = klik dibagi kunjungan halaman.</p>' + rank + '</div>' +
+          '<div class="grid2"><div class="card"><h2>Perangkat</h2><table class="log"><tr><td>HP</td><td>' + fmt(s.device.m) + ' · ' + pct(s.device.m, dv) + '</td></tr><tr><td>Desktop</td><td>' + fmt(s.device.d) + ' · ' + pct(s.device.d, dv) + '</td></tr></table></div>' +
+          '<div class="card"><h2>Bahasa dipilih</h2><table class="log"><tr><td>Indonesia</td><td>' + fmt(s.lang.id) + ' · ' + pct(s.lang.id, lg) + '</td></tr><tr><td>English</td><td>' + fmt(s.lang.en) + ' · ' + pct(s.lang.en, lg) + '</td></tr></table>' +
+          '<small class="muted">Hanya dari data ' + 90 + ' hari terakhir.</small></div></div>';
+      }
+
+      // Grafik garis dua seri dengan garis bantu dan tooltip saat disentuh atau diarahkan.
+      function drawChart() {
+        var box = $('chart');
+        var s = state.stats;
+        if (!box || !s || !s.series) return;
+        var data = s.series;
+        var W = Math.max(280, box.clientWidth), H = 220, L = 36, R = 12, T = 12, B = 26;
+        var max = Math.max(4, data.reduce(function (m, d) { return Math.max(m, d.views, d.clicks); }, 0));
+        // Garis bantu di angka bulat: kelipatan 1, 2, atau 5, paling banyak 5 garis.
+        var mag = Math.pow(10, Math.floor(Math.log10(max)));
+        var step = [1, 2, 5, 10].map(function (m) { return m * mag; }).filter(function (s) { return max / s <= 5; })[0];
+        max = Math.ceil(max / step) * step;
+        var x = function (i) { return L + (data.length > 1 ? (i * (W - L - R)) / (data.length - 1) : (W - L - R) / 2); };
+        var y = function (v) { return T + (H - T - B) * (1 - v / max); };
+        var grid = '';
+        for (var gv = 0; gv <= max; gv += step) {
+          grid += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(gv) + '" y2="' + y(gv) + '" stroke="#242a35" stroke-width="1"/>' +
+            '<text x="' + (L - 6) + '" y="' + (y(gv) + 4) + '" text-anchor="end" fill="#9aa0ab" font-size="11">' + fmt(Math.round(gv)) + '</text>';
+        }
+        var ticks = '';
+        var every = Math.max(1, Math.ceil(data.length / 6));
+        data.forEach(function (d, i) {
+          if (i % every === 0 || i === data.length - 1) {
+            var anchor = data.length > 1 && i === data.length - 1 ? 'end' : data.length > 1 && i === 0 ? 'start' : 'middle';
+            ticks += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="' + anchor + '" fill="#9aa0ab" font-size="11">' + d.date.slice(8, 10) + '/' + d.date.slice(5, 7) + '</text>';
+          }
+        });
+        var line = function (key, color) {
+          var pts = data.map(function (d, i) { return x(i).toFixed(1) + ',' + y(d[key]).toFixed(1); }).join(' ');
+          return '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+        };
+        box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Grafik kunjungan dan klik per hari">' + grid + ticks +
+          line('views', VIEW_COLOR) + line('clicks', CLICK_COLOR) +
+          '<g id="hover" style="display:none"><line id="hv-line" y1="' + T + '" y2="' + (H - B) + '" stroke="#9aa0ab" stroke-width="1" stroke-dasharray="3 3"/>' +
+          '<circle id="hv-v" r="5" fill="' + VIEW_COLOR + '" stroke="#0e1117" stroke-width="2"/><circle id="hv-c" r="5" fill="' + CLICK_COLOR + '" stroke="#0e1117" stroke-width="2"/></g>' +
+          '<rect x="' + L + '" y="0" width="' + (W - L - R) + '" height="' + H + '" fill="transparent" id="hv-hit"/></svg><div class="tip hidden" id="tip"></div>';
+        var svg = box.querySelector('svg');
+        var move = function (ev) {
+          var pt = ev.touches ? ev.touches[0] : ev;
+          var rect = svg.getBoundingClientRect();
+          var px = ((pt.clientX - rect.left) / rect.width) * W;
+          var i = data.length > 1 ? Math.round(((px - L) / (W - L - R)) * (data.length - 1)) : 0;
+          i = Math.max(0, Math.min(data.length - 1, i));
+          var d = data[i];
+          $('hover').style.display = '';
+          $('hv-line').setAttribute('x1', x(i)); $('hv-line').setAttribute('x2', x(i));
+          $('hv-v').setAttribute('cx', x(i)); $('hv-v').setAttribute('cy', y(d.views));
+          $('hv-c').setAttribute('cx', x(i)); $('hv-c').setAttribute('cy', y(d.clicks));
+          var tip = $('tip');
+          tip.innerHTML = '<b>' + new Date(d.date + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) + '</b><br>' +
+            '<span style="color:' + VIEW_COLOR + '">●</span> Kunjungan ' + fmt(d.views) + '<br><span style="color:' + CLICK_COLOR + '">●</span> Klik ' + fmt(d.clicks);
+          tip.classList.remove('hidden');
+          var left = (x(i) / W) * rect.width;
+          tip.style.left = Math.max(70, Math.min(rect.width - 70, left)) + 'px';
+          tip.style.top = ((y(Math.max(d.views, d.clicks)) / H) * rect.height - 10) + 'px';
+        };
+        var leave = function () { $('hover').style.display = 'none'; $('tip').classList.add('hidden'); };
+        svg.addEventListener('mousemove', move);
+        svg.addEventListener('touchstart', move, { passive: true });
+        svg.addEventListener('touchmove', move, { passive: true });
+        svg.addEventListener('mouseleave', leave);
+      }
+
+      // ---------- Pengaturan ----------
+      function viewSettings() {
+        var st = state.cfg.settings;
+        return '<div class="card"><div class="row" style="justify-content:space-between"><h2>Statistik</h2>' + toggle('Catat kunjungan dan klik', 'settings.tracking', st.tracking) + '</div>' +
+          '<p class="muted">Kalau dimatikan, data lama tetap ada tapi kunjungan dan klik baru tidak dicatat. Data lebih dari 90 hari diringkas otomatis per hari setiap malam.</p>' +
+          field('Domain website untuk penanda UTM', 'settings.utmDomain', st.utmDomain, { placeholder: 'silentcx.id', hint: 'Tautan ke domain ini otomatis diberi utm_source=instagram supaya terbaca di Google Analytics. Kosongkan untuk mematikan.' }) + '</div>' +
+          '<div class="card"><h2>Ganti PIN</h2><form class="pinform" id="pinform">' +
+          '<label class="field"><span>PIN lama</span><input type="password" inputmode="numeric" maxlength="4" pattern="\\d{4}" autocomplete="current-password" id="pin-old" required /></label>' +
+          '<label class="field"><span>PIN baru</span><input type="password" inputmode="numeric" maxlength="4" pattern="\\d{4}" autocomplete="new-password" id="pin-new" required /></label>' +
+          '<label class="field"><span>Ulangi PIN baru</span><input type="password" inputmode="numeric" maxlength="4" pattern="\\d{4}" autocomplete="new-password" id="pin-new2" required /></label>' +
+          '<div><button class="btn btn-sm" type="submit">Ganti PIN</button></div><p class="muted" style="margin:0;font-size:13px">Perangkat lain yang sedang masuk akan dikeluarkan.</p></form></div>' +
+          '<div class="card"><h2>Riwayat login</h2><div id="logins"><p class="muted">Memuat…</p></div></div>';
+      }
+
+      function loadLogins() {
+        call('adminLogins', state.token).then(function (rows) {
+          var box = $('logins');
+          if (!box) return;
+          box.innerHTML = rows.length ? '<table class="log">' + rows.map(function (r) {
+            return '<tr><td' + (String(r.result).indexOf('Gagal') === 0 ? ' class="err"' : '') + '>' + esc(r.result) + '</td><td>' + esc(r.at) + '</td></tr>';
+          }).join('') + '</table>' : '<p class="muted">Belum ada.</p>';
+        }).catch(function () {});
+      }
+
+      // ---------- Interaksi form ----------
+      function setPath(path, value) {
+        var parts = path.split('.');
+        var obj = state.cfg;
+        for (var i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
+        obj[parts[parts.length - 1]] = value;
+      }
+
+      $('view').addEventListener('input', function (e) {
+        var el = e.target;
+        var path = el.getAttribute('data-path');
+        if (!path) return;
+        setPath(path, el.type === 'checkbox' ? el.checked : el.value);
+        changed(el.type === 'checkbox' || el.tagName === 'SELECT');
+      });
+
+      $('view').addEventListener('change', function (e) {
+        if (e.target.id === 'avatar-file' && e.target.files[0]) shrinkAvatar(e.target.files[0]);
+      });
+
+      $('view').addEventListener('submit', function (e) {
+        if (e.target.id !== 'pinform') return;
+        e.preventDefault();
+        var o = $('pin-old').value, n = $('pin-new').value, n2 = $('pin-new2').value;
+        if (!/^\d{4}$/.test(n)) return toast('PIN baru harus 4 angka.', true);
+        if (n !== n2) return toast('Ulangan PIN baru tidak sama.', true);
+        call('adminChangePin', state.token, o, n).then(function (res) {
+          if (!res.ok) return toast(res.error, true);
+          e.target.reset();
+          toast('PIN berhasil diganti.');
+          loadLogins();
+        }).catch(function (err) { if (err.message !== 'SESI_HABIS') toast(err.message, true); });
+      });
+
+      $('view').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-act]');
+        if (!b) return;
+        var act = b.getAttribute('data-act');
+        var i = Number(b.getAttribute('data-i'));
+        var c = state.cfg;
+        if (act === 'add') {
+          var id = Math.random().toString(36).slice(2, 10).padEnd(8, '0');
+          c.links.push({ id: id, on: true, highlight: false, title: { id: '', en: '' }, desc: { id: '', en: '' }, url: 'https://', icon: 'link', start: '', end: '' });
+          state.open[id] = true;
+        } else if (act === 'edit') state.open[b.getAttribute('data-id')] = !state.open[b.getAttribute('data-id')];
+        else if (act === 'up' && i > 0) c.links.splice(i - 1, 0, c.links.splice(i, 1)[0]);
+        else if (act === 'down' && i < c.links.length - 1) c.links.splice(i + 1, 0, c.links.splice(i, 1)[0]);
+        else if (act === 'del') {
+          if (!confirm('Hapus tautan "' + (c.links[i].title.id || 'tanpa judul') + '"? Statistik lamanya tetap tersimpan.')) return;
+          c.links.splice(i, 1);
+        } else if (act === 'icon') c.links[i].icon = b.getAttribute('data-icon');
+        else if (act === 'social-add') c.social.push({ type: 'instagram', url: 'https://' });
+        else if (act === 'social-del') c.social.splice(i, 1);
+        else if (act === 'social-up' && i > 0) c.social.splice(i - 1, 0, c.social.splice(i, 1)[0]);
+        else if (act === 'avatar-reset') c.profile.avatar = '';
+        else if (act === 'days') { state.statsDays = Number(b.getAttribute('data-days')); loadStats(); return; }
+        else if (act === 'csv') { downloadCsv(); return; }
+        else return;
+        changed(true);
+      });
+
+      // Foto profil diperkecil di HP sebelum disimpan: persegi 256px.
+      function shrinkAvatar(file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var img = new Image();
+          img.onload = function () {
+            var size = 256, side = Math.min(img.width, img.height);
+            var canvas = document.createElement('canvas');
+            canvas.width = canvas.height = size;
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#06080c';
+            ctx.fillRect(0, 0, size, size);
+            ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+            var url = canvas.toDataURL('image/jpeg', 0.85);
+            if (url.length > 60000) url = canvas.toDataURL('image/jpeg', 0.6);
+            state.cfg.profile.avatar = url;
+            changed(true);
+          };
+          img.onerror = function () { toast('File itu bukan gambar yang bisa dibaca.', true); };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function downloadCsv() {
+        call('adminExportCsv', state.token, state.statsDays).then(function (csv) {
+          var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'statistik-linktree-' + today() + '.csv';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }).catch(function (err) { if (err.message !== 'SESI_HABIS') toast(err.message, true); });
+      }
+
+      function save() {
+        $('save').disabled = true;
+        $('save').textContent = 'Menyimpan…';
+        call('adminSave', state.token, state.cfg).then(function (res) {
+          state.saved = res.config;
+          state.cfg = clone(res.config);
+          state.stats = null;
+          toast('Tersimpan. Halaman publik sudah diperbarui.');
+          render();
+        }).catch(function (err) {
+          if (err.message !== 'SESI_HABIS') toast(err.message, true);
+        }).then(function () {
+          $('save').textContent = 'Simpan';
+          updateSavebar();
+        });
+      }
+
+      $('save').addEventListener('click', save);
+      $('discard').addEventListener('click', function () {
+        if (!confirm('Batalkan semua perubahan yang belum disimpan?')) return;
+        state.cfg = clone(state.saved);
+        render();
+      });
+
+      window.addEventListener('beforeunload', function (e) {
+        if (isDirty()) { e.preventDefault(); e.returnValue = ''; }
+      });
+      window.addEventListener('resize', function () { if (state.tab === 'stats') drawChart(); });
+
+      // Masih punya sesi dari kunjungan sebelumnya? Langsung masuk.
+      (function start() {
+        var s = null;
+        try { s = JSON.parse(localStorage.getItem('lt-admin') || 'null'); } catch (e) {}
+        if (s && s.token && s.exp > Date.now()) {
+          state.token = s.token;
+          loadPanel();
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <?!= include('Styles'); ?>
+  </head>
+  <body>
+    <main class="lt" id="app"></main>
+    <?!= include('Shared'); ?>
+    <script>
+      var BOOT = <?!= boot ?>;
+      var root = document.getElementById('app');
+      var stored = '';
+      try { stored = localStorage.getItem('lt-lang') || ''; } catch (e) {}
+      var lang = BOOT.lang || stored || 'id';
+      var device = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'm' : 'd';
+
+      // Kunjungan dicatat lewat google.script.run. Klik dikirim lewat sendBeacon supaya tetap sampai
+      // walau pengunjung langsung pindah halaman; kalau beacon tidak tersedia, pakai google.script.run.
+      function send(ev, beacon) {
+        if (!BOOT.cfg.tracking) return;
+        ev.d = device;
+        ev.l = lang;
+        var sent = false;
+        if (beacon) {
+          try { sent = navigator.sendBeacon && navigator.sendBeacon(BOOT.url, new Blob([JSON.stringify(ev)], { type: 'text/plain' })); } catch (e) {}
+        }
+        if (!sent && window.google && google.script) google.script.run.track(ev);
+      }
+
+      function draw() {
+        document.documentElement.lang = lang;
+        renderLinktree(root, BOOT.cfg, lang, { logo: BOOT.logo });
+      }
+
+      root.addEventListener('click', function (e) {
+        var langBtn = e.target.closest('[data-lang]');
+        if (langBtn) {
+          lang = langBtn.getAttribute('data-lang');
+          try { localStorage.setItem('lt-lang', lang); } catch (err) {}
+          draw();
+          return;
+        }
+        var a = e.target.closest('a[data-id]');
+        if (a) send({ t: 'c', id: a.getAttribute('data-id') }, true);
+      });
+
+      draw();
+      send({ t: 'v' });
+    </script>
+  </body>
+</html>
