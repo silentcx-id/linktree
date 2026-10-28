@@ -131,8 +131,16 @@ check("riwayat login mencatat sumber PIN", sheets.get("_login").rows.some((r) =>
 // ---------- Browser ----------
 const ORIGIN = "https://lt.test";
 const browser = await chromium.launch();
-async function open(path, viewport, { gasBridge = false } = {}) {
+async function open(path, viewport, { gasBridge = false, jsonDown = false, ctx: reuse } = {}) {
+  if (reuse) {
+    const page = await reuse.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(path, { waitUntil: "networkidle" });
+    return { ctx: reuse, page, errors };
+  }
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, userAgent: viewport.width < 600 ? "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile" : undefined });
+  ctx.jsonDown = jsonDown;
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -147,8 +155,15 @@ async function open(path, viewport, { gasBridge = false } = {}) {
       gas.doPost({ postData: { contents: req.postData() } });
       return route.fulfill({ body: "ok" });
     }
+    const params = Object.fromEntries(new URL(req.url()).searchParams);
+    // Jalur data JSON; Google menyajikannya dengan Access-Control-Allow-Origin: *.
+    if (params.format === "json") {
+      if (ctx.jsonDown) return route.abort();
+      const res = gas.doGet({ parameter: params });
+      return route.fulfill({ contentType: res.mime, body: res.getContent(), headers: { "Access-Control-Allow-Origin": "*" } });
+    }
     // Halaman dari doGet; tanpa ALLOWALL, Google mengirim X-Frame-Options yang menolak bingkai.
-    const res = gas.doGet({ parameter: Object.fromEntries(new URL(req.url()).searchParams) });
+    const res = gas.doGet({ parameter: params });
     route.fulfill({ contentType: "text/html", body: res.getContent(), headers: res.frame === "ALLOWALL" ? {} : { "X-Frame-Options": "SAMEORIGIN" } });
   });
   // Halaman GitHub Pages (docs/index.html) dengan APP_URL diarahkan ke web app tiruan.
@@ -210,17 +225,26 @@ try {
     await ctx.close();
   }
   {
-    const { ctx, page, errors } = await open("https://silentcx-id.github.io/linktree/", mobile, { gasBridge: true });
-    const frame = page.frameLocator("iframe");
-    await frame.locator(".lt-link").first().waitFor();
-    check("github.io: halaman Google tampil di dalam bingkai", (await frame.locator(".lt-link").count()) === 3);
-    check("github.io: layar tunggu hilang setelah halaman termuat", (await page.locator("#wait").count()) === 0);
+    const GH = "https://silentcx-id.github.io/linktree/";
+    const rows = log.getLastRow();
+    const { ctx, page, errors } = await open(GH, mobile);
+    await page.locator(".lt-link").first().waitFor();
+    check("github.io: linktree digambar langsung, tanpa bingkai", (await page.locator(".lt-link").count()) === 3 && (await page.locator("iframe").count()) === 0);
+    check("github.io: pengumuman dan media sosial tampil", (await page.locator(".lt-news").count()) === 1 && (await page.locator(".lt-social a").count()) === 3);
     check("github.io: pratinjau link memakai judul dan logo SilentCX", (await page.getAttribute('meta[property="og:image"]', "content"))?.endsWith("/assets/preview.png"));
-    await page.screenshot({ path: file("github-io-hp.png") });
-    await frame.locator(".lt-link").first().click();
+    await page.screenshot({ path: file("github-io-hp.png"), fullPage: true });
+    check("github.io: kunjungan tercatat ke Sheet lewat beacon", log.getLastRow() === rows + 1 && log.rows.at(-1)[1] === "v");
+    await page.locator(".lt-link").first().click();
     await page.waitForURL(/wa\.me/);
-    check("github.io: tautan membuka tujuan di jendela utama", page.url().includes("wa.me"));
+    check("github.io: tautan membuka tujuan di tab yang sama", page.url().includes("wa.me"));
+    check("github.io: klik tercatat ke Sheet", log.getLastRow() === rows + 2 && log.rows.at(-1)[1] === "c");
     check("github.io: tanpa error JavaScript", errors.length === 0, errors.join(" | "));
+
+    // Kunjungan berikutnya saat Google tidak bisa dihubungi: isi simpanan tetap tampil.
+    ctx.jsonDown = true;
+    const again = await open(GH + "?lang=en", mobile, { ctx });
+    check("github.io: saat Google gagal, isi simpanan tetap tampil", (await again.page.locator(".lt-link").count()) === 3 && (await again.page.textContent(".lt-links"))?.includes("Free consultation"));
+    await again.page.close();
     await page.goto("https://silentcx-id.github.io/linktree/?admin", { waitUntil: "networkidle" });
     check("github.io: ?admin langsung ke panel Google (tidak dibingkai)", page.url().startsWith(env.URL_EXEC) && page.url().endsWith("?admin"));
     for (const path of ["admin", "admin/"]) {
@@ -229,6 +253,18 @@ try {
     }
     check("panel admin menolak dibingkai, halaman publik boleh", gas.doGet({ parameter: { admin: "" } }).frame !== "ALLOWALL" && gas.doGet({ parameter: {} }).frame === "ALLOWALL");
     await ctx.close();
+  }
+  {
+    // Pengunjung baru saat Google tidak bisa dihubungi: diteruskan ke halaman Google sebagai cadangan.
+    const { ctx, page } = await open("https://silentcx-id.github.io/linktree/", mobile, { jsonDown: true });
+    await page.waitForURL(`${env.URL_EXEC}`);
+    check("github.io: pengunjung baru diteruskan ke halaman Google kalau data gagal dimuat", page.url() === env.URL_EXEC);
+    await ctx.close();
+  }
+  {
+    const json = gas.doGet({ parameter: { format: "json" } });
+    const data = JSON.parse(json.getContent());
+    check("jalur JSON hanya berisi tautan publik yang aktif", json.mime === "application/json" && data.links.length === 3 && !("settings" in data) && !JSON.stringify(data).includes("utmDomain"));
   }
   {
     const { ctx, page } = await open("/", desktop, { gasBridge: true });

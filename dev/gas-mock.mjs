@@ -146,7 +146,13 @@ export function createGas({ pinPrompts = [] } = {}) {
         return t;
       },
     },
-    ContentService: { createTextOutput: (t) => ({ getContent: () => t }) },
+    ContentService: {
+      MimeType: { JSON: "application/json" },
+      createTextOutput: (t) => {
+        const out = { mime: "text/plain", getContent: () => t, setMimeType: (v) => { out.mime = v; return out; } };
+        return out;
+      },
+    },
   };
   vm.createContext(ctx);
   vm.runInContext(readFileSync(new URL("Code.gs", DIR), "utf8"), ctx, { filename: "Code.gs" });

@@ -3,9 +3,13 @@
   <head>
     <!--
       Halaman GitHub Pages: silentcx-id.github.io/linktree (Settings → Pages → folder /docs).
-      Membingkai halaman linktree yang berjalan di Google Apps Script, supaya alamatnya pendek
-      dan pratinjau link (WhatsApp, DM) memakai judul dan logo SilentCX.
-      Kalau URL web app berubah, ganti APP_URL di bawah dan tautan di <noscript>.
+      FILE INI DIBUAT OTOMATIS dari dev/pages-template.html + Styles.html + Shared.html.
+      Jangan diubah langsung; ubah sumbernya lalu jalankan: npm run pages
+
+      Halaman ini menggambar linktree sendiri (tanpa bingkai, jadi jalan di iPhone dan tanpa banner Google).
+      Isinya diambil dari web app Google lewat ?format=json, statistik dikirim ke web app lewat sendBeacon.
+      Isi terakhir disimpan di browser supaya kunjungan berikutnya langsung tampil.
+      Kalau web app tidak bisa dihubungi dan belum ada simpanan, pengunjung diteruskan ke halaman Google.
     -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -14,6 +18,8 @@
     <meta name="theme-color" content="#06080c" />
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="apple-touch-icon" href="assets/icon-180.png" />
+    <link rel="preconnect" href="https://script.google.com" />
+    <link rel="preconnect" href="https://script.googleusercontent.com" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="SilentCX" />
     <meta property="og:title" content="SilentCX" />
@@ -23,47 +29,238 @@
     <meta property="og:image:width" content="600" />
     <meta property="og:image:height" content="600" />
     <meta name="twitter:card" content="summary" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Familjen+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #06080c;
+    --panel: #0e1117;
+    --raise: #161a22;
+    --line: #242a35;
+    --ink: #f3f1ec;
+    --muted: #9aa0ab;
+    --accent: #e5a93c;
+    --accent-ink: #06080c;
+    --mark: #f0bd5e;
+    --bad: #f06a5f;
+    --good: #4cc38a;
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+    --body: "Familjen Grotesk", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Halaman publik ---------- */
+  .lt { position: relative; max-width: 520px; margin: 0 auto; padding: 48px 16px 32px; display: grid; gap: 22px; }
+  .lt::before { content: ""; position: absolute; inset: 0 0 auto; height: 260px; background: radial-gradient(60% 100% at 50% 0%, rgba(229, 169, 60, 0.16), transparent 70%); pointer-events: none; }
+  .lt > * { position: relative; }
+  .lt-lang { position: absolute; top: 14px; right: 16px; display: flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel); }
+  .lt-lang button { border: 0; background: none; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+  .lt-lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .lt-head { display: grid; justify-items: center; text-align: center; gap: 10px; }
+  .lt-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); background: var(--raise); }
+  .lt-name { margin: 4px 0 0; font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: -0.01em; }
+  .lt-bio { margin: 0; color: var(--muted); max-width: 40ch; white-space: pre-line; }
+  .lt-news { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(229, 169, 60, 0.45); background: rgba(229, 169, 60, 0.1); color: var(--ink); text-decoration: none; font-size: 15px; }
+  .lt-news svg.i { color: var(--mark); }
+  .lt-links { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .lt-link { display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); text-decoration: none; transition: border-color 0.15s, transform 0.15s; }
+  .lt-link:hover { border-color: var(--accent); }
+  .lt-link:active { transform: scale(0.99); }
+  .lt-link .lt-ic { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: var(--raise); color: var(--mark); flex: none; }
+  .lt-link .lt-tx { display: grid; flex: 1; min-width: 0; }
+  .lt-link strong { font-weight: 600; font-size: 16px; }
+  .lt-link small { color: var(--muted); font-size: 13px; }
+  .lt-link .lt-go { color: var(--muted); }
+  .lt-link.hl { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .lt-link.hl .lt-ic { background: rgba(6, 8, 12, 0.14); color: var(--accent-ink); }
+  .lt-link.hl small, .lt-link.hl .lt-go { color: rgba(6, 8, 12, 0.72); }
+  .lt-link.hl:hover { border-color: var(--mark); background: var(--mark); }
+  .lt-social { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .lt-social a { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); color: var(--ink); background: var(--panel); }
+  .lt-social a:hover { border-color: var(--accent); color: var(--mark); }
+  .lt-foot { text-align: center; color: var(--muted); font-size: 12px; }
+  .lt-empty { text-align: center; color: var(--muted); padding: 24px; border: 1px dashed var(--line); border-radius: 16px; }
+</style>
     <style>
-      html, body { margin: 0; height: 100%; background: #06080c; color: #f3f1ec; font-family: system-ui, sans-serif; }
-      iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #06080c; }
-      .wait { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; }
-      .wait img { width: 72px; height: 72px; border-radius: 50%; border: 2px solid #e5a93c; animation: pulse 1.4s ease-in-out infinite; }
-      .wait a { color: #f0bd5e; }
-      .wait p { margin: 16px 0 0; font-size: 14px; color: #9aa0ab; visibility: hidden; }
-      .wait.slow p { visibility: visible; }
-      @keyframes pulse { 50% { opacity: 0.5; } }
+      .lt-wait { min-height: 60vh; display: grid; place-items: center; }
+      .lt-wait img { width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--accent); animation: lt-pulse 1.4s ease-in-out infinite; }
+      @keyframes lt-pulse { 50% { opacity: 0.5; } }
     </style>
   </head>
   <body>
-    <div class="wait" id="wait">
-      <div>
-        <img src="assets/icon-180.png" alt="SilentCX" />
-        <p>Halaman lambat terbuka? <a id="direct" href="#" target="_top">Buka langsung</a></p>
-      </div>
-    </div>
-    <noscript><p style="padding:16px">Buka <a style="color:#f0bd5e" href="https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec">halaman SilentCX</a>.</p></noscript>
+    <main class="lt" id="app"><div class="lt-wait"><img src="assets/icon-180.png" alt="SilentCX" /></div></main>
+    <noscript><p style="padding:16px;text-align:center">Buka <a style="color:#f0bd5e" href="https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec">halaman SilentCX</a>.</p></noscript>
+    <script>
+  // Ikon garis 24px. Dipakai halaman publik dan panel admin.
+  var ICONS = {
+    link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    whatsapp: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9.5 9.5c0 2.8 2.2 5 5 5l1-1.5-2-1-1 1a3.5 3.5 0 0 1-1.5-1.5l1-1-1-2Z"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    tag: '<path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5"/>',
+    userplus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/>',
+    file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+    mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+    phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+    calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+    star: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+    map: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    instagram: '<rect width="20" height="20" x="2" y="2" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/>',
+    tiktok: '<path d="M9 12a4 4 0 1 0 4 4V2a5 5 0 0 0 5 5"/>',
+    linkedin: '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/>',
+    youtube: '<path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/>',
+    megaphone: '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+    arrow: '<path d="M7 17 17 7"/><path d="M7 7h10v10"/>',
+  };
+  var ICON_LABELS = {
+    link: 'Tautan', whatsapp: 'WhatsApp', globe: 'Website', tag: 'Harga', userplus: 'Daftar', file: 'Dokumen', mail: 'Email', phone: 'Telepon',
+    calendar: 'Kalender', star: 'Unggulan', map: 'Lokasi', search: 'Cari', instagram: 'Instagram', tiktok: 'TikTok', linkedin: 'LinkedIn', youtube: 'YouTube',
+  };
+  var SOCIAL_LABELS = { instagram: 'Instagram', tiktok: 'TikTok', linkedin: 'LinkedIn', youtube: 'YouTube', whatsapp: 'WhatsApp', mail: 'Email', globe: 'Website' };
+
+  function icon(name) {
+    return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || ICONS.link) + '</svg>';
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // Teks dua bahasa: kalau versi Inggris kosong, pakai versi Indonesia.
+  function pick(pair, lang) {
+    return (pair && ((lang === 'en' && pair.en) || pair.id)) || '';
+  }
+
+  // Hanya alamat yang aman yang dijadikan tautan.
+  function safeUrl(url) {
+    return /^(https:\/\/|mailto:|tel:)/i.test(url || '') ? url : '#';
+  }
+
+  var LT_TEXT = {
+    id: { empty: 'Belum ada tautan.', social: 'Media sosial', links: 'Tautan' },
+    en: { empty: 'No links yet.', social: 'Social media', links: 'Links' },
+  };
+
+  // Menggambar halaman linktree ke dalam `root`. Dipakai halaman publik dan pratinjau di panel admin.
+  function renderLinktree(root, cfg, lang, opts) {
+    opts = opts || {};
+    var t = LT_TEXT[lang] || LT_TEXT.id;
+    var p = cfg.profile || {};
+    var html = '';
+    html += '<div class="lt-lang" role="group" aria-label="Bahasa / Language">' +
+      '<button type="button" data-lang="id" aria-pressed="' + (lang !== 'en') + '">ID</button>' +
+      '<button type="button" data-lang="en" aria-pressed="' + (lang === 'en') + '">EN</button></div>';
+    html += '<header class="lt-head"><img class="lt-avatar" alt="" src="' + esc(p.avatar || opts.logo || '') + '" />' +
+      '<h1 class="lt-name">' + esc(p.name) + '</h1>' +
+      (pick(p.bio, lang) ? '<p class="lt-bio">' + esc(pick(p.bio, lang)) + '</p>' : '') + '</header>';
+    var a = cfg.announcement;
+    if (a && a.on !== false && pick(a.text, lang)) {
+      var inner = icon('megaphone') + '<span>' + esc(pick(a.text, lang)) + '</span>';
+      html += a.url ? '<a class="lt-news" target="_top" rel="noopener" href="' + esc(safeUrl(a.url)) + '">' + inner + '</a>' : '<div class="lt-news">' + inner + '</div>';
+    }
+    var links = cfg.links || [];
+    if (!links.length) html += '<p class="lt-empty">' + t.empty + '</p>';
+    else {
+      html += '<ul class="lt-links" aria-label="' + t.links + '">';
+      links.forEach(function (l) {
+        var desc = pick(l.desc, lang);
+        html += '<li><a class="lt-link' + (l.highlight ? ' hl' : '') + '" target="_top" rel="noopener" data-id="' + esc(l.id) + '" href="' + esc(safeUrl(l.url)) + '">' +
+          '<span class="lt-ic">' + icon(l.icon) + '</span>' +
+          '<span class="lt-tx"><strong>' + esc(pick(l.title, lang)) + '</strong>' + (desc ? '<small>' + esc(desc) + '</small>' : '') + '</span>' +
+          '<span class="lt-go">' + icon('arrow') + '</span></a></li>';
+      });
+      html += '</ul>';
+    }
+    if ((cfg.social || []).length) {
+      html += '<nav class="lt-social" aria-label="' + t.social + '">';
+      cfg.social.forEach(function (s) {
+        html += '<a target="_top" rel="noopener" href="' + esc(safeUrl(s.url)) + '" aria-label="' + esc(SOCIAL_LABELS[s.type] || s.type) + '">' + icon(s.type) + '</a>';
+      });
+      html += '</nav>';
+    }
+    html += '<footer class="lt-foot">© ' + new Date().getFullYear() + ' ' + esc(p.name || 'SilentCX') + '</footer>';
+    root.innerHTML = html;
+  }
+</script>
     <script>
       var APP_URL = 'https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec';
+      var LOGO = 'assets/icon-180.png';
+      var CACHE = 'lt-cfg-v1';
       var params = new URLSearchParams(location.search);
-      // Panel admin tidak bisa dibingkai, jadi ?admin langsung dibuka di halaman Google.
-      if (params.has('admin')) {
-        location.replace(APP_URL + '?admin');
-      } else {
-        var src = APP_URL + (params.get('lang') === 'en' ? '?lang=en' : '');
-        document.getElementById('direct').href = src;
-        var frame = document.createElement('iframe');
-        frame.title = 'SilentCX';
-        frame.src = src;
-        frame.addEventListener('load', function () {
-          var w = document.getElementById('wait');
-          if (w) w.remove();
-        });
-        document.body.appendChild(frame);
-        setTimeout(function () {
-          var w = document.getElementById('wait');
-          if (w) w.classList.add('slow');
-        }, 6000);
+      if (params.has('admin')) location.replace(APP_URL + '?admin');
+
+      var root = document.getElementById('app');
+      var cfg = null;
+      var stored = '';
+      try { stored = localStorage.getItem('lt-lang') || ''; } catch (e) {}
+      var lang = params.get('lang') === 'en' ? 'en' : stored || 'id';
+      var device = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'm' : 'd';
+      var viewSent = false;
+
+      function send(ev) {
+        if (!cfg || !cfg.tracking) return;
+        ev.d = device;
+        ev.l = lang;
+        var body = JSON.stringify(ev);
+        try {
+          if (navigator.sendBeacon && navigator.sendBeacon(APP_URL, new Blob([body], { type: 'text/plain' }))) return;
+        } catch (e) {}
+        try { fetch(APP_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: body }); } catch (e) {}
       }
+
+      function draw() {
+        document.documentElement.lang = lang;
+        renderLinktree(root, cfg, lang, { logo: LOGO });
+        // Tautan membuka tujuan di tab yang sama, seperti linktree pada umumnya.
+        Array.prototype.forEach.call(root.querySelectorAll('a[target="_top"]'), function (a) { a.removeAttribute('target'); });
+      }
+
+      function show(data, fresh) {
+        cfg = data;
+        draw();
+        if (fresh && !viewSent) { viewSent = true; send({ t: 'v' }); }
+      }
+
+      root.addEventListener('click', function (e) {
+        var langBtn = e.target.closest('[data-lang]');
+        if (langBtn) {
+          lang = langBtn.getAttribute('data-lang');
+          try { localStorage.setItem('lt-lang', lang); } catch (err) {}
+          draw();
+          return;
+        }
+        var a = e.target.closest('a[data-id]');
+        if (a) send({ t: 'c', id: a.getAttribute('data-id') });
+      });
+
+      // Simpanan dari kunjungan sebelumnya ditampilkan dulu, lalu diganti isi terbaru.
+      try {
+        var cached = JSON.parse(localStorage.getItem(CACHE) || 'null');
+        if (cached && cached.links) show(cached, false);
+      } catch (e) {}
+
+      var giveUp = setTimeout(function () { if (!cfg) location.replace(APP_URL); }, 10000);
+      fetch(APP_URL + '?format=json', { credentials: 'omit' })
+        .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
+        .then(function (data) {
+          if (!data || !data.links) throw new Error('isi tidak dikenal');
+          clearTimeout(giveUp);
+          try { localStorage.setItem(CACHE, JSON.stringify(data)); } catch (e) {}
+          show(data, true);
+        })
+        .catch(function () {
+          clearTimeout(giveUp);
+          if (!cfg) location.replace(APP_URL);
+        });
     </script>
   </body>
 </html>

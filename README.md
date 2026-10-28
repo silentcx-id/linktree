@@ -6,9 +6,14 @@ Halaman tautan untuk bio Instagram SilentCX, dibuat dengan Google Apps Script. D
 - **Panel admin:** https://silentcx-id.github.io/linktree/admin (atau `?admin`), langsung diteruskan ke halaman Google
 - **Web app Google (asli):** https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec
 
-Link github.io hanyalah bingkai (`docs/index.html`) yang menampilkan web app Google di dalamnya. Gunanya supaya alamatnya pendek, dan pratinjau link di WhatsApp atau DM memakai judul dan logo SilentCX. Semua isi, panel, dan statistik tetap berjalan di Google.
+Halaman github.io (`docs/index.html`) menggambar linktree sendiri. Isinya diambil dari web app Google lewat `?format=json`, dan kunjungan serta klik dikirim balik ke web app. Hasilnya:
+- jalan di browser Instagram iPhone (tanpa bingkai);
+- tanpa banner abu-abu Google;
+- alamat pendek, dengan pratinjau link berjudul dan berlogo SilentCX.
 
-Saat kode diperbarui, deploy sebagai versi baru dari deployment yang sama supaya link web app tidak berubah (lihat "Kalau kode diperbarui"). Kalau link web app terpaksa berubah, ganti alamatnya di `docs/index.html` dan `docs/admin/index.html`.
+Isi terakhir disimpan di browser pengunjung, jadi kunjungan berikutnya langsung tampil. Pengunjung baru diteruskan ke halaman Google kalau web app tidak bisa dihubungi. Panel admin, PIN, statistik, dan Sheet tetap di Google.
+
+Saat kode diperbarui, deploy sebagai versi baru dari deployment yang sama supaya link web app tidak berubah (lihat "Kalau kode diperbarui"). Kalau link web app terpaksa berubah, ganti `appUrl` di `pages.config.json`, jalankan `npm run pages`, lalu commit dan push.
 
 ## Fitur
 
@@ -45,7 +50,9 @@ Saat kode diperbarui, deploy sebagai versi baru dari deployment yang sama supaya
 | `Logo.html` | HTML `Logo` (logo SilentCX, satu baris panjang) |
 | `appsscript.json` | Manifest (lihat langkah 2) |
 
-Folder `dev/` berisi uji lokal, dan folder `docs/` berisi halaman GitHub Pages. Keduanya tidak perlu disalin ke Apps Script.
+Folder `dev/` berisi uji lokal dan template halaman GitHub Pages. Folder `docs/` berisi halaman GitHub Pages hasil `npm run pages`. Keduanya tidak perlu disalin ke Apps Script.
+
+`docs/index.html` dibuat otomatis dari `dev/pages-template.html`, `Styles.html`, dan `Shared.html`. Jadi tampilan github.io selalu sama dengan tampilan di Apps Script. Setelah mengubah salah satu file itu, jalankan `npm run pages`. `npm test` gagal kalau `docs/` belum diperbarui.
 
 ## Cara pasang
 
@@ -97,8 +104,7 @@ Cara 2 juga bisa dipakai untuk membuat PIN pertama kali, kalau kotak isian PIN d
 
 ## Perlu diketahui
 
-- Karena dibuat dengan akun Gmail biasa, Google menampilkan banner abu-abu "This application was created by a Google Apps Script user" di atas halaman. Banner ini tidak bisa dihilangkan dari akun Gmail biasa.
-- Banner Google tetap terlihat walau dibuka lewat link github.io, karena halamannya tetap dari Google.
+- Halaman Google asli (`/exec`) dan panel admin menampilkan banner abu-abu "This application was created by a Google Apps Script user". Halaman github.io tidak menampilkannya.
 - Nanti linktree bisa dipindah ke `silentcx.id/links` di website utama dengan membaca Sheet yang sama.
 - Jangan mengubah tab tersembunyi di Sheet (`_data`, `_log`, `_harian`, `_login`). Semua perubahan lewat panel.
 - Sesi admin disimpan di browser yang dipakai, selama 8 jam atau sampai kamu menekan **Keluar**.

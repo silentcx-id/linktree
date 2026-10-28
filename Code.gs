@@ -28,6 +28,10 @@ const SOCIALS = ['instagram', 'tiktok', 'linkedin', 'youtube', 'whatsapp', 'mail
 // ---------- Web app ----------
 
 function doGet(e) {
+  // Jalur data untuk halaman silentcx-id.github.io/linktree: isi halaman publik sebagai JSON.
+  if (e && e.parameter && e.parameter.format === 'json') {
+    return ContentService.createTextOutput(JSON.stringify(publicConfig_())).setMimeType(ContentService.MimeType.JSON);
+  }
   const isAdmin = e && e.parameter && Object.prototype.hasOwnProperty.call(e.parameter, 'admin');
   if (isAdmin) applyPendingPin_();
   const url = ScriptApp.getService().getUrl();
@@ -42,7 +46,6 @@ function doGet(e) {
     .evaluate()
     .setTitle(isAdmin ? 'Admin · SilentCX Linktree' : (readConfig_().profile.name || 'SilentCX'))
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, viewport-fit=cover');
-  // Halaman publik boleh dibingkai oleh silentcx-id.github.io/linktree (index.html di repo).
   // Panel admin tidak boleh dibingkai situs lain, supaya layar PIN tidak bisa ditiru di dalam bingkai.
   return isAdmin ? out : out.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }

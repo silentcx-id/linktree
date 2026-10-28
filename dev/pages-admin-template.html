@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <!--
+      silentcx-id.github.io/linktree/admin → panel admin di Google Apps Script.
+      Panel tidak boleh dibingkai, jadi halaman ini langsung meneruskan ke alamat Google.
+      FILE INI DIBUAT OTOMATIS dari dev/pages-admin-template.html; jalankan npm run pages setelah mengubah sumbernya.
+    -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Admin · SilentCX Linktree</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png" />
+    <meta http-equiv="refresh" content="0; url={{APP_URL}}?admin" />
+    <script>
+      location.replace('{{APP_URL}}?admin');
+    </script>
+    <style>
+      html, body { margin: 0; height: 100%; background: #06080c; color: #9aa0ab; font-family: system-ui, sans-serif; }
+      body { display: grid; place-items: center; text-align: center; padding: 16px; box-sizing: border-box; }
+      a { color: #f0bd5e; }
+    </style>
+  </head>
+  <body>
+    <p>Membuka panel admin… <a href="{{APP_URL}}?admin">Klik di sini</a> kalau tidak terbuka.</p>
+  </body>
+</html>

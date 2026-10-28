@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node dev/test.mjs"
+    "pages": "node dev/build-pages.mjs",
+    "test": "node dev/build-pages.mjs --check && node dev/test.mjs"
   },
   "devDependencies": {
     "playwright": "^1.64.1"
