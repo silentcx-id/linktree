@@ -2,10 +2,13 @@
 
 Halaman tautan untuk bio Instagram SilentCX, dibuat dengan Google Apps Script. Data disimpan di satu Google Sheet, dan semua pengelolaannya lewat panel admin yang dikunci PIN 4 digit.
 
-- **Halaman publik:** https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec
-- **Panel admin:** link yang sama + `?admin`
+- **Link untuk bio Instagram:** https://silentcx-id.github.io/linktree/
+- **Panel admin:** https://silentcx-id.github.io/linktree/?admin (langsung diteruskan ke halaman Google)
+- **Web app Google (asli):** https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec
 
-Saat kode diperbarui, deploy sebagai versi baru dari deployment yang sama supaya link ini tidak berubah (lihat "Kalau kode diperbarui").
+Link github.io hanyalah bingkai (`docs/index.html`) yang menampilkan web app Google di dalamnya. Gunanya supaya alamatnya pendek, dan pratinjau link di WhatsApp atau DM memakai judul dan logo SilentCX. Semua isi, panel, dan statistik tetap berjalan di Google.
+
+Saat kode diperbarui, deploy sebagai versi baru dari deployment yang sama supaya link web app tidak berubah (lihat "Kalau kode diperbarui"). Kalau link web app terpaksa berubah, ganti `APP_URL` di `docs/index.html`.
 
 ## Fitur
 
@@ -42,7 +45,7 @@ Saat kode diperbarui, deploy sebagai versi baru dari deployment yang sama supaya
 | `Logo.html` | HTML `Logo` (logo SilentCX, satu baris panjang) |
 | `appsscript.json` | Manifest (lihat langkah 2) |
 
-Folder `dev/` berisi uji lokal dan tidak perlu disalin ke Apps Script.
+Folder `dev/` berisi uji lokal, dan folder `docs/` berisi halaman GitHub Pages. Keduanya tidak perlu disalin ke Apps Script.
 
 ## Cara pasang
 
@@ -68,7 +71,8 @@ Folder `dev/` berisi uji lokal dan tidak perlu disalin ke Apps Script.
    1. Buka `URL/exec?admin` dan masukkan PIN.
    2. Ganti nomor WhatsApp (`wa.me/6281200000000` masih contoh), email, dan alamat tautan lain.
    3. Tekan **Simpan**.
-6. **Pasang di Instagram:** Edit profile → Links → Add external link, lalu tempel URL `/exec`, tanpa `?admin`.
+6. **Aktifkan GitHub Pages:** di repo GitHub, buka **Settings → Pages**. Pada **Build and deployment**, pilih **Source: Deploy from a branch**, **Branch: main**, folder **/docs**, lalu **Save**. Tunggu 1–2 menit sampai https://silentcx-id.github.io/linktree/ bisa dibuka.
+7. **Pasang di Instagram:** Edit profile → Links → Add external link, lalu tempel `https://silentcx-id.github.io/linktree/`.
 
 ### Kalau kode diperbarui
 
@@ -94,7 +98,8 @@ Cara 2 juga bisa dipakai untuk membuat PIN pertama kali, kalau kotak isian PIN d
 ## Perlu diketahui
 
 - Karena dibuat dengan akun Gmail biasa, Google menampilkan banner abu-abu "This application was created by a Google Apps Script user" di atas halaman. Banner ini tidak bisa dihilangkan dari akun Gmail biasa.
-- Link `/exec` panjang. Nanti bisa dipindah ke `silentcx.id/links` di website utama dengan membaca Sheet yang sama.
+- Banner Google tetap terlihat walau dibuka lewat link github.io, karena halamannya tetap dari Google.
+- Nanti linktree bisa dipindah ke `silentcx.id/links` di website utama dengan membaca Sheet yang sama.
 - Jangan mengubah tab tersembunyi di Sheet (`_data`, `_log`, `_harian`, `_login`). Semua perubahan lewat panel.
 - Sesi admin disimpan di browser yang dipakai, selama 8 jam atau sampai kamu menekan **Keluar**.
 
@@ -120,7 +125,7 @@ Uji ini menjalankan `Code.gs` di atas tiruan layanan Google, lalu membuka halama
 
 ## Daftar uji setelah dipasang
 
-- [ ] Buka URL `/exec` dari HP. Logo, nama, bio, tiga tautan pertama, dan ikon media sosial tampil.
+- [ ] Buka https://silentcx-id.github.io/linktree/ dari HP. Logo, nama, bio, tiga tautan pertama, dan ikon media sosial tampil.
 - [ ] Tombol **EN** mengganti teks ke bahasa Inggris.
 - [ ] Ketuk satu tautan. Halaman tujuan terbuka.
 - [ ] Buka `/exec?admin` lalu masukkan PIN salah sekali. Muncul "PIN salah. Sisa 4 percobaan".

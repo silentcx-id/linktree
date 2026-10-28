@@ -1,7 +1,8 @@
 // Uji lokal linktree: logika server (Code.gs di atas tiruan Apps Script) dan kedua halaman di browser headless.
 // Tidak menyentuh Google sama sekali. Jalankan: npm test
 import { chromium } from "playwright";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { createGas } from "./gas-mock.mjs";
 
 const OUT = new URL("./out/", import.meta.url);
@@ -140,9 +141,22 @@ async function open(path, viewport, { gasBridge = false } = {}) {
     const res = gas.doGet({ parameter: Object.fromEntries(u.searchParams) });
     route.fulfill({ contentType: "text/html", body: res.getContent() });
   });
-  await ctx.route(env.URL_EXEC, (route) => {
-    gas.doPost({ postData: { contents: route.request().postData() } });
-    route.fulfill({ body: "ok" });
+  await ctx.route(`${env.URL_EXEC}**`, (route) => {
+    const req = route.request();
+    if (req.method() === "POST") {
+      gas.doPost({ postData: { contents: req.postData() } });
+      return route.fulfill({ body: "ok" });
+    }
+    // Halaman dari doGet; tanpa ALLOWALL, Google mengirim X-Frame-Options yang menolak bingkai.
+    const res = gas.doGet({ parameter: Object.fromEntries(new URL(req.url()).searchParams) });
+    route.fulfill({ contentType: "text/html", body: res.getContent(), headers: res.frame === "ALLOWALL" ? {} : { "X-Frame-Options": "SAMEORIGIN" } });
+  });
+  // Halaman GitHub Pages (docs/index.html) dengan APP_URL diarahkan ke web app tiruan.
+  await ctx.route("https://silentcx-id.github.io/linktree/**", (route) => {
+    const u = new URL(route.request().url());
+    if (u.pathname.startsWith("/linktree/assets/")) return route.fulfill({ path: fileURLToPath(new URL(`../docs${u.pathname.slice(9)}`, import.meta.url)) });
+    const page = readFileSync(new URL("../docs/index.html", import.meta.url), "utf8").replace(/https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec/g, env.URL_EXEC);
+    route.fulfill({ contentType: "text/html", body: page });
   });
   await ctx.route(/wa\.me|silentcx\.id|instagram\.com/, (route) => route.fulfill({ contentType: "text/html", body: "<p>tujuan</p>" }));
   if (gasBridge) {
@@ -169,7 +183,7 @@ async function open(path, viewport, { gasBridge = false } = {}) {
       window.google = { script: { get run() { return runner(); } } };
     });
   }
-  await page.goto(ORIGIN + path, { waitUntil: "networkidle" });
+  await page.goto(path.startsWith("http") ? path : ORIGIN + path, { waitUntil: "networkidle" });
   return { ctx, page, errors };
 }
 
@@ -192,6 +206,23 @@ try {
     const last = log.rows.at(-1);
     check("kunjungan (google.script.run) dan klik (beacon) tercatat", log.getLastRow() === rows + 2 && last[1] === "c" && last[4] === "m" && last[5] === "en", JSON.stringify(last.slice(1)));
     check("halaman publik tanpa error JavaScript", errors.length === 0, errors.join(" | "));
+    await ctx.close();
+  }
+  {
+    const { ctx, page, errors } = await open("https://silentcx-id.github.io/linktree/", mobile, { gasBridge: true });
+    const frame = page.frameLocator("iframe");
+    await frame.locator(".lt-link").first().waitFor();
+    check("github.io: halaman Google tampil di dalam bingkai", (await frame.locator(".lt-link").count()) === 3);
+    check("github.io: layar tunggu hilang setelah halaman termuat", (await page.locator("#wait").count()) === 0);
+    check("github.io: pratinjau link memakai judul dan logo SilentCX", (await page.getAttribute('meta[property="og:image"]', "content"))?.endsWith("/assets/preview.png"));
+    await page.screenshot({ path: file("github-io-hp.png") });
+    await frame.locator(".lt-link").first().click();
+    await page.waitForURL(/wa\.me/);
+    check("github.io: tautan membuka tujuan di jendela utama", page.url().includes("wa.me"));
+    check("github.io: tanpa error JavaScript", errors.length === 0, errors.join(" | "));
+    await page.goto("https://silentcx-id.github.io/linktree/?admin", { waitUntil: "networkidle" });
+    check("github.io: ?admin langsung ke panel Google (tidak dibingkai)", page.url().startsWith(env.URL_EXEC) && page.url().endsWith("?admin"));
+    check("panel admin menolak dibingkai, halaman publik boleh", gas.doGet({ parameter: { admin: "" } }).frame !== "ALLOWALL" && gas.doGet({ parameter: {} }).frame === "ALLOWALL");
     await ctx.close();
   }
   {

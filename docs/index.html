@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <!--
+      Halaman GitHub Pages: silentcx-id.github.io/linktree (Settings → Pages → folder /docs).
+      Membingkai halaman linktree yang berjalan di Google Apps Script, supaya alamatnya pendek
+      dan pratinjau link (WhatsApp, DM) memakai judul dan logo SilentCX.
+      Kalau URL web app berubah, ganti APP_URL di bawah dan tautan di <noscript>.
+    -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SilentCX</title>
+    <meta name="description" content="Mystery shopping & audit pengalaman pelanggan untuk bisnis Anda." />
+    <meta name="theme-color" content="#06080c" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/icon-180.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SilentCX" />
+    <meta property="og:title" content="SilentCX" />
+    <meta property="og:description" content="Mystery shopping & audit pengalaman pelanggan untuk bisnis Anda." />
+    <meta property="og:url" content="https://silentcx-id.github.io/linktree/" />
+    <meta property="og:image" content="https://silentcx-id.github.io/linktree/assets/preview.png" />
+    <meta property="og:image:width" content="600" />
+    <meta property="og:image:height" content="600" />
+    <meta name="twitter:card" content="summary" />
+    <style>
+      html, body { margin: 0; height: 100%; background: #06080c; color: #f3f1ec; font-family: system-ui, sans-serif; }
+      iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #06080c; }
+      .wait { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; }
+      .wait img { width: 72px; height: 72px; border-radius: 50%; border: 2px solid #e5a93c; animation: pulse 1.4s ease-in-out infinite; }
+      .wait a { color: #f0bd5e; }
+      .wait p { margin: 16px 0 0; font-size: 14px; color: #9aa0ab; visibility: hidden; }
+      .wait.slow p { visibility: visible; }
+      @keyframes pulse { 50% { opacity: 0.5; } }
+    </style>
+  </head>
+  <body>
+    <div class="wait" id="wait">
+      <div>
+        <img src="assets/icon-180.png" alt="SilentCX" />
+        <p>Halaman lambat terbuka? <a id="direct" href="#" target="_top">Buka langsung</a></p>
+      </div>
+    </div>
+    <noscript><p style="padding:16px">Buka <a style="color:#f0bd5e" href="https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec">halaman SilentCX</a>.</p></noscript>
+    <script>
+      var APP_URL = 'https://script.google.com/macros/s/AKfycbyvMYUW0EAmczwiUXJ7Z6mn-i4jBP8SI8r1XXKSalKvi2kYUzabO4B6bqRQOOveEn9TfA/exec';
+      var params = new URLSearchParams(location.search);
+      // Panel admin tidak bisa dibingkai, jadi ?admin langsung dibuka di halaman Google.
+      if (params.has('admin')) {
+        location.replace(APP_URL + '?admin');
+      } else {
+        var src = APP_URL + (params.get('lang') === 'en' ? '?lang=en' : '');
+        document.getElementById('direct').href = src;
+        var frame = document.createElement('iframe');
+        frame.title = 'SilentCX';
+        frame.src = src;
+        frame.addEventListener('load', function () {
+          var w = document.getElementById('wait');
+          if (w) w.remove();
+        });
+        document.body.appendChild(frame);
+        setTimeout(function () {
+          var w = document.getElementById('wait');
+          if (w) w.classList.add('slow');
+        }, 6000);
+      }
+    </script>
+  </body>
+</html>

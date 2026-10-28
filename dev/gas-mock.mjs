@@ -131,6 +131,7 @@ export function createGas({ pinPrompts = [] } = {}) {
       },
     },
     HtmlService: {
+      XFrameOptionsMode: { ALLOWALL: "ALLOWALL", DEFAULT: "DEFAULT" },
       createHtmlOutputFromFile: (name) => ({ getContent: () => readFileSync(new URL(`${name}.html`, DIR), "utf8") }),
       createTemplateFromFile: (name) => {
         const t = {
@@ -138,7 +139,7 @@ export function createGas({ pinPrompts = [] } = {}) {
             const html = readFileSync(new URL(`${name}.html`, DIR), "utf8")
               .replace(/<\?!=\s*include\('(\w+)'\);?\s*\?>/g, (_, n) => ctx.include(n))
               .replace(/<\?!=\s*boot\s*\?>/g, () => t.boot);
-            const out = { title: "", setTitle: (v) => { out.title = v; return out; }, addMetaTag: () => out, getContent: () => html };
+            const out = { title: "", frame: "DEFAULT", setTitle: (v) => { out.title = v; return out; }, addMetaTag: () => out, setXFrameOptionsMode: (m) => { out.frame = m; return out; }, getContent: () => html };
             return out;
           },
         };

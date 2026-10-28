@@ -38,10 +38,13 @@ function doGet(e) {
   } else {
     t.boot = safeJson_({ url: url, logo: logo, cfg: publicConfig_(), lang: e && e.parameter && e.parameter.lang === 'en' ? 'en' : '' });
   }
-  return t
+  const out = t
     .evaluate()
     .setTitle(isAdmin ? 'Admin · SilentCX Linktree' : (readConfig_().profile.name || 'SilentCX'))
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, viewport-fit=cover');
+  // Halaman publik boleh dibingkai oleh silentcx-id.github.io/linktree (index.html di repo).
+  // Panel admin tidak boleh dibingkai situs lain, supaya layar PIN tidak bisa ditiru di dalam bingkai.
+  return isAdmin ? out : out.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 // Pencatat statistik lewat navigator.sendBeacon (tetap terkirim walau pengunjung pindah halaman).
