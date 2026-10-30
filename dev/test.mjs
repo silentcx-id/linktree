@@ -64,6 +64,9 @@ check("alamat javascript: ditolak", /tidak valid/.test(throws(() => gas.adminSav
 const big = structuredClone(loaded.config);
 big.profile.avatar = "data:image/png;base64," + "A".repeat(70000);
 check("gambar profil terlalu besar ditolak", /terlalu besar/.test(throws(() => gas.adminSave(token, big))));
+const socials = ["instagram", "tiktok", "facebook", "threads", "x", "linkedin", "youtube", "whatsapp", "mail", "globe"].map((type) => ({ type, url: type === "mail" ? "mailto:halo@silentcx.com" : `https://contoh.id/${type}` }));
+check("X, Threads, dan Facebook diterima; 10 media sosial muat", gas.cleanConfig_({ ...loaded.config, social: socials }).social.map((s) => s.type).join() === socials.map((s) => s.type).join());
+check("jenis media sosial yang tidak dikenal ditolak", /tidak dikenal/.test(throws(() => gas.cleanConfig_({ ...loaded.config, social: [{ type: "myspace", url: "https://myspace.com/x" }] }))));
 
 const cfg = structuredClone(loaded.config);
 cfg.profile.name = "SilentCX </script><b>x";

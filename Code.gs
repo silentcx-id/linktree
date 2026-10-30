@@ -22,8 +22,9 @@ const LOCK_STEPS_MIN = [15, 60, 24 * 60]; // setelah itu terkunci penuh sampai P
 const CACHE_KEY = 'cfg-v1';
 const CACHE_AVATAR = 'avatar-v1';
 
-const ICONS = ['link', 'whatsapp', 'globe', 'tag', 'userplus', 'file', 'mail', 'phone', 'calendar', 'star', 'map', 'search', 'instagram', 'tiktok', 'linkedin', 'youtube'];
-const SOCIALS = ['instagram', 'tiktok', 'linkedin', 'youtube', 'whatsapp', 'mail', 'globe'];
+const ICONS = ['link', 'whatsapp', 'globe', 'tag', 'userplus', 'file', 'mail', 'phone', 'calendar', 'star', 'map', 'search', 'instagram', 'tiktok', 'linkedin', 'youtube', 'facebook', 'threads', 'x'];
+const SOCIALS = ['instagram', 'tiktok', 'facebook', 'threads', 'x', 'linkedin', 'youtube', 'whatsapp', 'mail', 'globe'];
+const MAX_SOCIAL = 10;
 
 // ---------- Web app ----------
 
@@ -317,7 +318,7 @@ function cleanConfig_(input) {
       end: cleanDate_(l.end),
     };
   });
-  const social = (input.social || []).slice(0, 8).map(function (s) {
+  const social = (input.social || []).slice(0, MAX_SOCIAL).map(function (s) {
     if (SOCIALS.indexOf(s.type) < 0) throw new Error('Jenis media sosial tidak dikenal.');
     return { type: s.type, url: cleanUrl_(s.url, true) };
   });
